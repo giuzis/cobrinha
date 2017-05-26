@@ -8,6 +8,8 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 
+//modifiquei cobrinha
+
 using namespace std;
 
 const float FPS = 60;
@@ -31,7 +33,7 @@ protected:
 public:
 	Segmento()
 	{
-		x = 300;
+		x = 200;
 		y = 300;
 	}
 	Segmento(int _x, int _y)
