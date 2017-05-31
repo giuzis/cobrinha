@@ -1,3 +1,17 @@
+/*
+ANOTAÇÕES
+
+TEM UMA PERGUNTA EM ALGUMA CLASSE
+QUAL A DIFERENÇA ENTRE ESFECIFICADOR DE ACESSO E ENCAPSULAMENTO
+
+
+Colocar maçã mordida com pontuação ao lado
+interface imprime - filhas maçã, cobrinha e veneno
+colocar uma inicializa em timer e em display (ver se dá para fazer superposição ou sobreposição)
+
+
+*/
+
 #include <stdio.h>
 #include <iostream>
 #include <time.h>
@@ -18,16 +32,18 @@ const int SCREEN_H = 600;
 
 bool comAudio = true;
 
+//KEY_UP KEY_DOWN KEY_LEFT KEY_RIGHT
 bool teclas[4] = { false, false, false, false };
 
 enum TECLAS {
-   KEY_UP, KEY_DOWN, KEY_W, KEY_S
+   KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 };
 
 
+
 //cada segmento 20x20
-class Segmento{
-protected:
+class Segmento
+{
 	int x;
 	int y;
 public:
@@ -71,7 +87,9 @@ public:
     }
 };
 
-class Cobrinha {
+//Relação de composição com segmentos
+class Cobrinha 
+{
 	int tamanho, x, y;
 	static const int tamanho_maximo = 30;
 	Segmento **segmentos;
@@ -80,18 +98,6 @@ public:
 	{
 		x = 18;
 		y = 18;
-		tamanho = 8;
-		segmentos = new Segmento*[tamanho_maximo];
-		for(int i = 0; i < tamanho; i++)
-        {
-            segmentos[i] = new Segmento(x-i, y);
-        }
-        cout << "cobrinha criada" << endl;
-	}
-	Cobrinha(int i)
-	{
-		x = 17;
-		y = 17;
 		tamanho = 8;
 		segmentos = new Segmento*[tamanho_maximo];
 		for(int i = 0; i < tamanho; i++)
@@ -141,10 +147,6 @@ public:
 		parede[1] = 5;
 		parede[2] = 37;
 		parede[3] = 25;
-	
-		// fundo = al_load_bitmap("fundo.jpg");
-		// if(!fundo)
-		// 	cout << "Erro ao carregar fundo!" << endl;
 	}
 
   	void imprime()
@@ -194,21 +196,7 @@ public:
    			cout << "failed to initialize allegro primitives!\n";
    		}
 	}
-	void inicializaDisplay(ALLEGRO_DISPLAY **display)
-	{
-		cout << "Inicializa display" << endl;
-		*display = al_create_display(SCREEN_W, SCREEN_H);
-		al_set_window_title(*display, "Meu Jogo");
-
-		if(!*display) {
-	   	   cout << "failed to create display!\n";
-	   	}
-
-	   	if (!al_set_system_mouse_cursor(*display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT))
-   		{
-   		    cout << "Falha ao atribuir ponteiro do mouse.\n";
-   		}
-	}
+	
 	void inicializaFont(ALLEGRO_FONT **font)
 	{
 		cout << "Inicializa Font" << endl;
@@ -227,37 +215,150 @@ public:
 	   	   cout << "Could not load 'pirulen.ttf'.\n";
 	   	}
 	}
-   	void inicializaTimer(ALLEGRO_TIMER **timer)
-   	{
-   		cout << "Inicializa timer" << endl;
-   		*timer = al_create_timer(0.5);
-   		if(!*timer) {
-	   	   cout << "failed to create timer!\n";
-	   	}
-	   	al_start_timer(*timer);
-   	}
-   	void inicializaEvent(ALLEGRO_DISPLAY **display, ALLEGRO_EVENT_QUEUE **event_queue, ALLEGRO_TIMER **timer)
-   	{
-   		*event_queue = al_create_event_queue();
-   		if(!(*event_queue)) {
-   		   cout << "failed to create event_queue!\n";
-   		}
-   		al_register_event_source(*event_queue, al_get_display_event_source(*display));
-    	al_register_event_source(*event_queue, al_get_timer_event_source(*timer));
-   	}
+   
    	~Inicializa()
    	{}
 };
 
+
+//Tem que ficar criando e destruindo para alterar a velocidade da cobrinha?
+class Timer
+{
+protected:
+	ALLEGRO_TIMER *timer = NULL;
+	int tempo;
+
+	Timer(int _tempo)
+   	{
+   		tempo = _tempo;
+   		cout << "Inicializa timer" << endl;
+   		timer = al_create_timer(tempo);
+   		if(!timer) {
+	   	   cout << "failed to create timer!\n";
+	   	}
+	   	al_start_timer(timer);
+   	}
+   	// void setTimer()
+   	// {
+
+   	// }
+   	~Timer()
+   	{
+   		al_destroy_timer(timer);
+   		cout << "Destruiu timer." << endl;
+   	}
+};
+
+class Display
+{
+protected:
+	ALLEGRO_DISPLAY *display = NULL;
+
+	Display()
+	{
+		cout << "Inicializa display" << endl;
+		display = al_create_display(SCREEN_W, SCREEN_H);
+		al_set_window_title(display, "Meu Jogo");
+
+		if(!display) {
+	   	   cout << "failed to create display!\n";
+	   	}
+
+	   	if (!al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT))
+   		{
+   		    cout << "Falha ao atribuir ponteiro do mouse.\n";
+   		}
+	}
+	~Display()
+	{
+		al_destroy_display(display);
+   		cout << "Destruiu display." << endl;
+	}
+};
+
+//Herança múltipla
+class Eventos: public Timer, public Display
+{
+	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
+	ALLEGRO_EVENT event;
+public:
+	Eventos() : Timer(1.0), Display()
+	{
+		event_queue = al_create_event_queue();
+   		if(!event_queue) {
+   		   cout << "failed to create event_queue!\n";
+   		}
+   		al_register_event_source(event_queue, al_get_display_event_source(display));
+    	al_register_event_source(event_queue, al_get_timer_event_source(timer));
+    }
+
+//Dependência com cobrinha
+	bool confereEvento(Cobrinha *cobrinha)
+	{
+		if (!al_is_event_queue_empty(event_queue))
+        {
+            al_wait_for_event(event_queue, &event);
+ 
+            if (event.type == ALLEGRO_EVENT_TIMER)
+            {
+                cobrinha->moveParaDireita();
+                cobrinha->imprime();
+                al_flip_display();
+            }
+            else 
+           	{
+           		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+           		    return true;  
+           	}
+
+           	if(event.type == ALLEGRO_EVENT_KEY_DOWN)
+      		{
+      		    switch(event.keyboard.keycode) 
+      		    {
+            	case ALLEGRO_KEY_UP:
+            		teclas[KEY_UP] = true;
+            		teclas[KEY_DOWN] = false;
+            		teclas[KEY_LEFT] = false;
+            		teclas[KEY_RIGHT] = false;
+            	    break;
+	
+	            case ALLEGRO_KEY_DOWN:
+	            	teclas[KEY_UP] = false;
+            		teclas[KEY_DOWN] = true;
+            		teclas[KEY_LEFT] = false;
+            		teclas[KEY_RIGHT] = false;
+	            	break;
+	
+	            case ALLEGRO_KEY_LEFT:
+	               	teclas[KEY_UP] = false;
+            		teclas[KEY_DOWN] = false;
+            		teclas[KEY_LEFT] = false;
+            		teclas[KEY_RIGHT] = false;
+	               	break;
+	
+	            case ALLEGRO_KEY_RIGHT:
+	            	teclas[KEY_UP] = true;
+            		teclas[KEY_DOWN] = false;
+            		teclas[KEY_LEFT] = false;
+            		teclas[KEY_RIGHT] = false;
+            	   	break;      		
+            	}
+            }
+      	}
+      	return false;
+	}
+	// void verificaTeclado()
+	// {
+
+	// }
+	~Eventos()
+	{
+		al_destroy_event_queue(event_queue);
+	}
+};
+
 int main()
 {
-
-	//Reponsável pela impressão na tela
-	ALLEGRO_DISPLAY *display = NULL;
-	//Fila de eventos
-	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
-	//Eventos de tempo (ocorrem a cada X tempo)
-	ALLEGRO_TIMER *timer = NULL;
 	ALLEGRO_FONT *font = NULL;
     srand((unsigned)time(NULL));
 
@@ -266,11 +367,9 @@ int main()
     Inicializa inicio;
     Fundo fundo;
     Cobrinha cobrinha;
+    Eventos evento;
 
-    inicio.inicializaDisplay(&display);
     inicio.inicializaFont(&font);
-    inicio.inicializaTimer(&timer);
-    inicio.inicializaEvent(&display, &event_queue, &timer);
 
     fundo.imprime();
     cobrinha.imprime();
@@ -279,23 +378,7 @@ int main()
 
     while (!sair)
     {
-        if (!al_is_event_queue_empty(event_queue))
-        {
-            ALLEGRO_EVENT event;
-            al_wait_for_event(event_queue, &event);
- 
-            if (event.type == ALLEGRO_EVENT_TIMER)
-            {
-                cobrinha.moveParaDireita();
-                cobrinha.imprime();
-                al_flip_display();
-            }
-            else 
-           	{
-           		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-           		    sair = true;  
-           	}
-        }
+        sair = evento.confereEvento(&cobrinha);
     }
 
     //TESTES INICIAS DA MOVIMENTAÇÃO
@@ -363,17 +446,10 @@ int main()
  //        al_flip_display();
  //    }
 
-    al_destroy_event_queue(event_queue);
    
 
 	al_destroy_font(font);
    	cout << "Destruiu font." << endl;
-
-   	al_destroy_timer(timer);
-   	cout << "Destruiu timer." << endl;
-   	
-   	al_destroy_display(display);
-   	cout << "Destruiu display." << endl;
 
 	return 0;
 }
