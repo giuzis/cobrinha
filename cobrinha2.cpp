@@ -33,13 +33,11 @@ const int SCREEN_H = 600;
 bool comAudio = true;
 
 //KEY_UP KEY_DOWN KEY_LEFT KEY_RIGHT
-bool teclas[4] = { false, false, false, false };
+bool teclas[4] = {false, false, false, false};
 
 enum TECLAS {
    KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 };
-
-
 
 //cada segmento 20x20
 class Segmento
@@ -64,6 +62,14 @@ public:
 	{
         y++;
 	}
+	void decrementaX()
+	{
+		x--;
+	}
+	void decrementaY()
+	{
+        y--;
+	}
 	void setX(int novo_x)
 	{
 		x = novo_x;
@@ -83,7 +89,6 @@ public:
     ~Segmento()
     {
         cout << "segmento destruido" << endl;
-        //al_destroy_bitmap(bmp);
     }
 };
 
@@ -118,6 +123,42 @@ public:
         segmentos[0]->incrementaX();
 
 	}
+	void moveParaEsquerda()
+	{
+		int x = segmentos[tamanho-1]->getX();
+		int y = segmentos[tamanho-1]->getY();
+		al_draw_filled_rectangle((x-1)*20, (y-1)*20, x*20, y*20, al_map_rgb(120, 139, 70));
+        for(int i = tamanho-1; i > 0; i--)
+        {
+            segmentos[i]->setX(segmentos[i-1]->getX());
+        }
+        segmentos[0]->incrementaX();
+
+	}
+	void moveParaCima()
+	{
+		int x = segmentos[tamanho-1]->getX();
+		int y = segmentos[tamanho-1]->getY();
+		al_draw_filled_rectangle((x-1)*20, (y-1)*20, x*20, y*20, al_map_rgb(120, 139, 70));
+        for(int i = tamanho-1; i > 0; i--)
+        {
+            segmentos[i]->setX(segmentos[i-1]->getX());
+        }
+        segmentos[0]->incrementaX();
+
+	}
+	void moveParaBaixo()
+	{
+		int x = segmentos[tamanho-1]->getX();
+		int y = segmentos[tamanho-1]->getY();
+		al_draw_filled_rectangle((x-1)*20, (y-1)*20, x*20, y*20, al_map_rgb(120, 139, 70));
+        for(int i = tamanho-1; i > 0; i--)
+        {
+            segmentos[i]->setX(segmentos[i-1]->getX());
+        }
+        segmentos[0]->incrementaX();
+
+	}
   	void imprime()
   	{
         for(int i = 0; i < tamanho; i++)
@@ -134,6 +175,8 @@ public:
         delete[] segmentos;
         cout << "cobrinha destruida" << endl;
 	}
+	//friend void Eventos::confereEventos(Cobrinha* cobrinha, Comandos* comandos);
+	//friend void Comandos::confereComandosCobrinha(Cobrinha* cobrinha);
 };
 
 class Fundo
@@ -276,6 +319,34 @@ protected:
 	}
 };
 
+
+class Comandos
+{
+public:
+	Comandos(){}
+	void confereComandosCobrinha(Cobrinha *cobrinha)
+	{
+		if(teclas[KEY_UP])
+		{
+			cobrinha->moveParaCima();
+		}
+		if(teclas[KEY_DOWN])
+		{
+			cobrinha->moveParaBaixo();
+		}
+		if(teclas[KEY_LEFT])
+		{
+			cobrinha->moveParaEsquerda();
+		}
+		if(teclas[KEY_RIGHT])
+		{
+			cobrinha->moveParaDireita();
+		}
+	}
+	~Comandos(){}
+	//friend void Eventos::confereEventos(Cobrinha* cobrinha, Comandos* comandos);
+};
+
 //Herança múltipla
 class Eventos: public Timer, public Display
 {
@@ -292,8 +363,8 @@ public:
     	al_register_event_source(event_queue, al_get_timer_event_source(timer));
     }
 
-//Dependência com cobrinha
-	bool confereEvento(Cobrinha *cobrinha)
+	//Dependência com cobrinha e comandos
+	bool confereEvento(Cobrinha *cobrinha, Comandos* comandos)
 	{
 		if (!al_is_event_queue_empty(event_queue))
         {
@@ -301,14 +372,14 @@ public:
  
             if (event.type == ALLEGRO_EVENT_TIMER)
             {
-                cobrinha->moveParaDireita();
+            	comandos->confereComandosCobrinha(cobrinha);
                 cobrinha->imprime();
                 al_flip_display();
             }
             else 
            	{
            		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-           		    return true;  
+           		    return false;  
            	}
 
            	if(event.type == ALLEGRO_EVENT_KEY_DOWN)
@@ -332,25 +403,21 @@ public:
 	            case ALLEGRO_KEY_LEFT:
 	               	teclas[KEY_UP] = false;
             		teclas[KEY_DOWN] = false;
-            		teclas[KEY_LEFT] = false;
+            		teclas[KEY_LEFT] = true;
             		teclas[KEY_RIGHT] = false;
 	               	break;
 	
 	            case ALLEGRO_KEY_RIGHT:
-	            	teclas[KEY_UP] = true;
+	            	teclas[KEY_UP] = false;
             		teclas[KEY_DOWN] = false;
             		teclas[KEY_LEFT] = false;
-            		teclas[KEY_RIGHT] = false;
+            		teclas[KEY_RIGHT] = true;
             	   	break;      		
             	}
             }
       	}
-      	return false;
+      	return true;
 	}
-	// void verificaTeclado()
-	// {
-
-	// }
 	~Eventos()
 	{
 		al_destroy_event_queue(event_queue);
@@ -368,6 +435,7 @@ int main()
     Fundo fundo;
     Cobrinha cobrinha;
     Eventos evento;
+    Comandos comandos;
 
     inicio.inicializaFont(&font);
 
@@ -378,7 +446,7 @@ int main()
 
     while (!sair)
     {
-        sair = evento.confereEvento(&cobrinha);
+        sair = evento.confereEvento(&cobrinha, &comandos);
     }
 
     //TESTES INICIAS DA MOVIMENTAÇÃO
