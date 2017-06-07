@@ -1,4 +1,4 @@
-#include "cobrinha2.h"
+#include "cobrinha.hpp"
 
 int main()
 {
@@ -7,26 +7,34 @@ int main()
 
 
     bool sair = false;
-    int velocidade = 5;
-    ALLEGRO_BITMAP* maca;
+    int velocidade = 4;
     Inicializa inicio;
     Fundo fundo;
     Cobrinha cobrinha;
     Eventos evento;
     Comandos comandos;
-    Maca maca1(&cobrinha), maca2(&cobrinha);
+    Colisoes colisoes(&cobrinha);
+    Maca maca;
+    int i = 0;
 
     inicio.inicializaFont(&font);
 
     fundo.imprime();
-    maca1.imprime();
-    maca2.imprime();
+    maca.novaMaca(&cobrinha);
+    maca.imprime();
     al_flip_display();
 
 
     while (!sair)
     {
         sair = evento.confereEvento(velocidade, &cobrinha, &comandos);
+        i = colisoes.confereColisoesMaca(&maca, &cobrinha);
+
+        if(i == 3)  // aumenta a velocidade a cada 5 maçãs
+        {
+            velocidade--; 
+            i = 0;
+        }
     }
 
     //TESTES INICIAS DA MOVIMENTAÇÃO
