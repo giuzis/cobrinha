@@ -368,11 +368,14 @@ int Cobrinha::getCabecaY()
 
 void Cobrinha::aumentaTamanho()
 {
-	aumenta = true;
-	x = segmentos[tamanho-1]->getX();
-    y = segmentos[tamanho-1]->getY();
-    segmentos[tamanho] = new Segmento(x, y);
-    tamanho++;
+	if(tamanho < tamanho_maximo)
+	{
+		aumenta = true;
+		x = segmentos[tamanho-1]->getX();
+    	y = segmentos[tamanho-1]->getY();
+    	segmentos[tamanho] = new Segmento(x, y);
+    	tamanho++;
+	}
 }
 
 bool Cobrinha::verificaColisao()

@@ -40,8 +40,16 @@ class Colisoes;
 class GameOver;
 class Pontuacao;
 class Veneno;
+//class InterfaceImprimir;
 
-class Segmento
+class InterfaceImprimir
+{
+public:
+	virtual void imprime() = 0;
+	virtual ~InterfaceImprimir(){}
+};
+
+class Segmento: public InterfaceImprimir
 {
 	int x;
 	int y;
@@ -59,7 +67,7 @@ public:
     ~Segmento();
 };
 
-class Maca
+class Maca: public InterfaceImprimir
 {
 	ALLEGRO_BITMAP* maca;
 	int numero_macas;
@@ -141,7 +149,7 @@ public:
 	~Eventos();
 };
 
-class Cobrinha
+class Cobrinha: public InterfaceImprimir
 {
 	int tamanho, x, y;
 	static const int tamanho_maximo = 100;
