@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <time.h>
+#include <sstream>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
@@ -22,7 +23,7 @@ const int SCREEN_H = 600;
 const int PAREDE_ESQUERDA = 3;
 const int PAREDE_TOPO = 5;
 const int PAREDE_DIREITA = 37;
-const int PAREDE_CHAO = 25;	
+const int PAREDE_CHAO = 25;
 
 const int DIVISAO = 20;
 
@@ -36,6 +37,9 @@ class Inicializa;
 class Timer;
 class Display;
 class Colisoes;
+class GameOver;
+class Pontuacao;
+class Veneno;
 
 class Segmento
 {
@@ -64,10 +68,26 @@ class Maca
 public:
 	Maca();
 	void novaMaca(Cobrinha* cobrinha);
+	void novaMaca(Cobrinha* cobrinha, Veneno* veneno, int n_veneno);
 	int getX();
 	int getY();
 	void imprime();
 	~Maca();
+};
+
+class Veneno
+{
+	ALLEGRO_BITMAP* bit_veneno;
+	int x;
+	int y;
+public:
+	Veneno();
+	bool operator+(Cobrinha *cobrinha);
+	void novoVeneno(Cobrinha* cobrinha, Maca* maca);
+	void novoVeneno(Cobrinha* cobrinha, Maca* maca, Veneno* veneno, int n_veneno);
+	int getX();
+	int getY();
+	~Veneno();
 };
 
 class Inicializa
@@ -85,6 +105,9 @@ protected:
 	float tempo;
 	Timer(float _tempo);
    	~Timer();
+public:
+    void para();
+    void recomeca();
 };
 
 class Display
@@ -113,15 +136,15 @@ class Eventos: public Timer, public Display
 	static int conta_timer;
 public:
 	Eventos();
+	bool confereMenu();
 	bool confereEvento(int velocidade, Cobrinha* cobrinha, Comandos* comandos);
 	~Eventos();
 };
 
-
 class Cobrinha
 {
 	int tamanho, x, y;
-	static const int tamanho_maximo = 30;
+	static const int tamanho_maximo = 100;
 	bool aumenta;
 	Segmento **segmentos;
 	void movimenta();
@@ -135,18 +158,22 @@ public:
 	Cobrinha();
 	int getCabecaX();
 	int getCabecaY();
+	bool verificaColisao();
 	~Cobrinha();
 	friend bool Eventos::confereEvento(int velocidade, Cobrinha* cobrinha, Comandos* comandos);;
 	friend void Comandos::confereComandosCobrinha(Cobrinha *cobrinha);
 	friend Colisoes;
 	friend Maca;
+	friend Veneno;
 };
 
 class Fundo
 {
+    ALLEGRO_BITMAP* macamordida;
 public:
 	Fundo();
-  	void imprime();
+	void menu(ALLEGRO_FONT *font);
+  	void imprime(ALLEGRO_FONT *font);
 };
 
 //Agregação com cobrinha
@@ -155,11 +182,31 @@ class Colisoes
 {
 	//Cobrinha* cobrinha;
 public:
-	Colisoes(Cobrinha* cobrinha);
-	//void novaMaca(Maca* maca);
-	int confereColisoesMaca(Maca* maca, Cobrinha* cobrinha);
-	void confereColisoesVeneno();
-	void confereColisoesParede();
+	Colisoes();
+	bool confereColisoesMaca(Maca* maca, Cobrinha* cobrinha, Veneno* veneno, int n_veneno);
+	bool confereColisoesParede(Cobrinha* cobrinha);
+	bool confereColisoesCorpo(Cobrinha* cobrinha);
+};
+
+class GameOver
+{
+    ALLEGRO_EVENT_QUEUE *event_queue = NULL;
+	ALLEGRO_EVENT event;
+public:
+    GameOver();
+    void imprime(ALLEGRO_FONT *font, int pontuacao);
+    bool aguardaAcao();
+};
+
+class Pontuacao
+{
+    int pontos;
+public:
+    Pontuacao();
+    void setPontos();
+    int getPontos();
+    void imprime(ALLEGRO_FONT *font);
+    ~Pontuacao();
 };
 
 #endif // COBRINHA2_H_INCLUDED
